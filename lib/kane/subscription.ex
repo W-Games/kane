@@ -129,6 +129,15 @@ defmodule Kane.Subscription do
 
   defp find_path, do: "projects/#{project()}/subscriptions"
   defp find_path(subscription), do: "#{find_path()}/#{strip!(subscription)}"
+  defp find_path(subscription) do
+    subscription
+    |> String.contains?("/")
+    |> if do
+      subscription
+    else
+      "#{find_path()}/#{strip!(subscription)}"
+    end
+  end
 
   def path(%__MODULE__{name: name}, kind), do: path(name, kind)
 
