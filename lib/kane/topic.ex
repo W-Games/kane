@@ -80,7 +80,11 @@ defmodule Kane.Topic do
       "my-topic"
   """
   @spec strip!(String.t()) :: String.t()
-  def strip!(name), do: String.replace(name, ~r(^#{path()}/?), "")
+  def strip!(name) do
+    name
+    |> String.split("/", trim: true)
+    |> List.last()
+  end
 
   @doc """
   Adds the project and topic prefix (if necessary) to create a fully-qualified topic name
@@ -100,5 +104,14 @@ defmodule Kane.Topic do
   end
 
   defp path, do: "projects/#{project()}/topics"
-  defp path(topic), do: "#{path()}/#{strip!(topic)}"
+
+  defp path(topic) do
+    topic
+    |> String.contains?("/")
+    |> if do
+      topic
+    else
+      "#{path()}/#{strip!(topic)}"
+    end
+  end
 end

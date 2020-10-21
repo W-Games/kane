@@ -99,9 +99,10 @@ defmodule Kane.Subscription do
 
   def extend(%__MODULE__{} = sub, %Message{} = msg, extension), do: extend(sub, [msg], extension)
 
-  def extend(%__MODULE__{} = sub, messages, extension) when is_list(messages) and is_integer(extension) do
+  def extend(%__MODULE__{} = sub, messages, extension)
+      when is_list(messages) and is_integer(extension) do
     data = %{
-      "ackIds" => Enum.map(messages, &(&1.ack_id)),
+      "ackIds" => Enum.map(messages, & &1.ack_id),
       "ackDeadlineSeconds" => extension
     }
 
@@ -128,7 +129,7 @@ defmodule Kane.Subscription do
   end
 
   defp find_path, do: "projects/#{project()}/subscriptions"
-  #defp find_path(subscription), do: "#{find_path()}/#{strip!(subscription)}"
+  # defp find_path(subscription), do: "#{find_path()}/#{strip!(subscription)}"
   defp find_path(subscription) do
     subscription
     |> String.contains?("/")
@@ -153,11 +154,21 @@ defmodule Kane.Subscription do
   def full_name(%__MODULE__{name: name}), do: full_name(name)
 
   def full_name(name) do
-    {:ok, project} = Goth.Config.get(:project_id)
-    "projects/#{project}/subscriptions/#{name}"
+    name
+    |> String.contains?("/")
+    |> if do
+      name
+    else
+      {:ok, project} = Goth.Config.get(:project_id)
+      "projects/#{project}/subscriptions/#{name}"
+    end
   end
 
-  def strip!(name), do: String.replace(name, ~r(^#{find_path()}/?), "")
+  def strip!(name) do
+    name
+    |> String.split("/", trim: true)
+    |> List.last()
+  end
 
   defp from_json(json) do
     data = Jason.decode!(json)
